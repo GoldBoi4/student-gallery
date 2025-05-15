@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>GitHub Photo Slideshow</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #eaeaea; overflow: hidden; }
+    .container {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 1000px; height: 600px;
+      background: #f5f5f5; box-shadow: 0 30px 50px #dbdbdb;
+    }
+    .slide .item {
+      width: 200px; height: 300px;
+      position: absolute; top: 50%;
+      transform: translate(0, -50%);
+      border-radius: 20px;
+      box-shadow: 0 30px 50px #505050;
+      background-position: 50% 50%; background-size: cover;
+      display: inline-block; transition: 0.5s;
+    }
+    .slide .item:nth-child(1),
+    .slide .item:nth-child(2) {
+      top: 0; left: 0;
+      transform: translate(0, 0);
+      border-radius: 0; width: 100%; height: 100%;
+    }
+    .slide .item:nth-child(3) { left: 50%; }
+    .slide .item:nth-child(4) { left: calc(50% + 220px); }
+    .slide .item:nth-child(5) { left: calc(50% + 440px); }
+    .slide .item:nth-child(n + 6) {
+      left: calc(50% + 660px); opacity: 0;
+    }
+    .item .content {
+      position: absolute; top: 50%; left: 100px;
+      width: 300px; text-align: left; color: #eee;
+      transform: translate(0, -50%);
+      font-family: system-ui; display: none;
+    }
+    .slide .item:nth-child(2) .content { display: block; }
+    .content .name {
+      display: none;
+    }
+    .content .des {
+      display: none;
+    }
+    .content button {
+      display: none;
+    }
+    @keyframes animate {
+      from { opacity: 0; transform: translate(0, 100px); filter: blur(33px); }
+      to { opacity: 1; transform: translate(0); filter: blur(0); }
+    }
+    .button {
+      width: 100%; text-align: center;
+      position: absolute; bottom: 20px;
+    }
+    .button button {
+      width: 40px; height: 35px;
+      border-radius: 8px; border: none;
+      cursor: pointer; margin: 0 5px;
+      border: 1px solid #000;
+    }
+    .button button:hover {
+      background: #ababab; color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="slide" id="slide">
+    <!-- Dynamic image items will be inserted here -->
+  </div>
+
+  <div class="button">
+    <button class="prev"><i class="fa-solid fa-arrow-left"></i></button>
+    <button class="next"><i class="fa-solid fa-arrow-right"></i></button>
+  </div>
+</div>
+
+<script>
+  const slide = document.getElementById('slide');
+  const next = document.querySelector('.next');
+  const prev = document.querySelector('.prev');
+
+  async function fetchImages() {
+    try {
+      const response = await fetch('https://api.github.com/repos/GoldBoi4/Photo/contents/');
+      if (!response.ok) throw new Error('Network response was not ok');
+      const files = await response.json();
+      const imageFiles = files.filter(file => {
+        const ext = file.name.split('.').pop().toLowerCase();
+        return ['jpg', 'jpeg', 'png', 'gif'].includes(ext);
+      });
+
+      imageFiles.forEach((file) => {
+        const item = document.createElement('div');
+        item.className = 'item';
+        item.style.backgroundImage = `url('${file.download_url}')`;
+
+        const content = document.createElement('div');
+        content.className = 'content';
+
+        item.appendChild(content);
+        slide.appendChild(item);
+      });
+    } catch (error) {
+      console.error('Error fetching images:', error);
+    }
+  }
+
+  function nextSlide() {
+    const items = document.querySelectorAll('.item');
+    if (items.length > 0) {
+      slide.appendChild(items[0]);
+    }
+  }
+
+  function prevSlide() {
+    const items = document.querySelectorAll('.item');
+    if (items.length > 0) {
+      slide.prepend(items[items.length - 1]);
+    }
+  }
+
+  next.addEventListener('click', nextSlide);
+  prev.addEventListener('click', prevSlide);
+  setInterval(nextSlide, 3000);
+  fetchImages();
+</script>
+
+</body>
+</html>
